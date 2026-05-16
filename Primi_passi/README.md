@@ -1,6 +1,33 @@
 # Progetto di tesi Bachelor
 Pievaioli Davide 911544 
- 
+
+## Setup dell'Ambiente
+
+### Creare il Virtual Environment
+
+```bash
+python3 -m venv v_env
+```
+
+### Attivare il Virtual Environment
+
+**Su macOS/Linux:**
+```bash
+source v_env/bin/activate
+```
+
+**Su Windows:**
+```bash
+v_env\Scripts\activate
+```
+
+### Installare le Dipendenze
+
+```bash
+pip install -r requirements.txt
+```
+
+---
 
 ## Obiettivo Principale
 TBD
