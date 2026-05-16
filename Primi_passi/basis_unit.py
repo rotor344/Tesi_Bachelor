@@ -1,6 +1,6 @@
 import torch 
 from torch import nn
-from Tesi_Bachelor.Primi_passi.AU_torch_version import SingleWavefunction
+from AU_torch_version import SingleWavefunction
 import copy # per fotografare i pesi della loss minore
 import matplotlib.pyplot as plt
 

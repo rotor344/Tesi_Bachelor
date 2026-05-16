@@ -24,7 +24,7 @@ Architecture:
 
 # Comincio dalle Phi 
 class SingleWaveFunction:
-    def __init__ (self, R_x, R_y, R_z):
+    def __init__ (self, R_x: float , R_y: float, R_z: float): # dichiarazione dei tipi da fare ovunque..
         self.R_x = R_x
         self.R_y = R_y
         self.R_z = R_z
@@ -42,7 +42,7 @@ class SingleWaveFunction:
         return phi 
     
     def disegna(self, pedice):
-        asse_x = np.linspace(-18, 18, np.pow(10,6))
+        asse_x = np.linspace(-18, 18, np.power(10,6))
         asse_y = 0
         asse_z = 0
         valori_phi = np.zeros(len(asse_x))
@@ -60,8 +60,8 @@ class SingleWaveFunction:
     
     def disegna_3d(self, ax, titolo): 
         # meno punti rispetto al 1D per non appesantire il 3D
-        asse_x = np.linspace(-18, 18, np.pow(10,3))
-        asse_y = np.linspace(-18, 18, np.pow(10,3))
+        asse_x = np.linspace(-18, 18, np.power(10,3))
+        asse_y = np.linspace(-18, 18, np.power(10,3))
         
         # griglia 2D
         X, Y = np.meshgrid(asse_x, asse_y)

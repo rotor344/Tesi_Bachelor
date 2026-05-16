@@ -1,11 +1,9 @@
 import torch 
 from torch import nn
-from Tesi_Bachelor.Primi_passi.basis_unit import NeuralCorrection
-from Tesi_Bachelor.Primi_passi.AU_torch_version import SingleWavefunction
 import copy
 import matplotlib.pyplot as plt
 import numpy as np
-from Tesi_Bachelor.Primi_passi.funzione_f import ModelloH2
+from funzione_f import ModelloH2
 
 def calcola_potenziale(r, R):
     R1 = torch.tensor([-R, 0.0, 0.0])

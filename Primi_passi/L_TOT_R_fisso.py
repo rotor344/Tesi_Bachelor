@@ -1,12 +1,12 @@
 import torch 
 from torch import nn
-from Tesi_Bachelor.Primi_passi.basis_unit import NeuralCorrection
-from Tesi_Bachelor.Primi_passi.AU_torch_version import SingleWavefunction
+from basis_unit import NeuralCorrection
+from AU_torch_version import SingleWavefunction
 import copy
 import matplotlib.pyplot as plt
 import numpy as np
-from Tesi_Bachelor.Primi_passi.funzione_f import ModelloH2
-from Tesi_Bachelor.Primi_passi.L_PDE_R_fisso import calcola_laplaciano, calcola_potenziale
+from funzione_f import ModelloH2
+from L_PDE_R_fisso import calcola_laplaciano, calcola_potenziale
 
 class EnergyUnit(nn.Module):
     def __init__(self):

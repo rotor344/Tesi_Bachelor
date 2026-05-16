@@ -1,10 +1,9 @@
 import torch 
 from torch import nn
-from Tesi_Bachelor.Primi_passi.basis_unit import NeuralCorrection
-from Tesi_Bachelor.Primi_passi.AU_torch_version import SingleWavefunction
+from basis_unit import NeuralCorrection
+from AU_torch_version import SingleWavefunction
 import copy
 import matplotlib.pyplot as plt
-import numpy as np
 
 class ModelloH2(nn.Module):
     def __init__(self):

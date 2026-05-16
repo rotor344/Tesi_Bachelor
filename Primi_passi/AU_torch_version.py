@@ -1,6 +1,7 @@
 import torch 
 import numpy as np
 import matplotlib.pyplot as plt
+from typing import Union
 
 # invece di passare r_x, r_y, r_z come variabili separate, in pytorch 
 # conviene passare un unico vettore posizione r (un tensore di 3 elementi). 
@@ -8,7 +9,7 @@ import matplotlib.pyplot as plt
 # la derivata della funzione d'onda rispetto al vettore posizione dell'elettrone"
 
 class SingleWavefunction:
-    def __init__(self, R_x, R_y, R_z):
+    def __init__(self, R_x: Union[float, torch.Tensor], R_y: Union[float, torch.Tensor], R_z: Union[float, torch.Tensor]):
         # Salvo la posizione del nucleo come un tensore 1D di 3 elementi.
         self.R = torch.tensor([R_x, R_y, R_z], dtype=torch.float32) # dtype=torch.float32 è lo standard per le reti neurali.
     
@@ -27,9 +28,9 @@ class SingleWavefunction:
     
     def disegna_1d(self, pedice):
         # 10000 punti lungo l'asse x usando pytorch
-        asse_x = torch.linspace(-18, 18, np.pow(10, 4))
+        asse_x = torch.linspace(-18, 18, np.power(10, 4))
         # bisgona creare una matrice con 10k righe e 3 colonne [x, y, z]
-        r_punti = torch.zeros(np.pow(10, 4), 3)
+        r_punti = torch.zeros(np.power(10, 4), 3)
         # inserisco i valori di asse_x nella colonna 0 (ovvero le x)
         for j in range (len(asse_x)):
             r_punti[j, 0] = asse_x[j]
