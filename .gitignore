@@ -1,0 +1,36 @@
+# Python cache files
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+
+# Virtual environments
+**/v_env/
+**/venv/
+**/.env
+**/.env.*
+
+# Jupyter Notebook checkpoints
+**/.ipynb_checkpoints/
+
+# macOS files
+**/.DS_Store
+
+# VS Code workspace settings
+**/.vscode/
+
+# Logs and local data
+**/*.log
+**/*.sqlite3
+**/*.db
+
+# Matplotlib/cache
+**/*.cache
+
+# PyTorch model weights and checkpoints
+**/*.pt
+**/*.pth
+
+# Backup files
+**/*~
+**/*.swp
+**/*.swo
