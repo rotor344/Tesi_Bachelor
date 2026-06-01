@@ -120,8 +120,8 @@ if __name__ == '__main__':
 
     ottimizzatore = optim.Adam(model.parameters(), lr=8*10**(-3))
 
-    epoche = 1500
-    punti_per_epoca = 5000
+    epoche = 2000
+    punti_per_epoca = 6000
     valori_loss = []          
     miglior_loss = float('inf')  
     migliori_pesi = None
@@ -219,6 +219,73 @@ if __name__ == '__main__':
     # Dettagli del grafico
     plt.xlabel('x [a.u.]')
     plt.ylabel('Ampiezza Psi')
+    plt.grid(True, alpha=0.3)
+    plt.legend(loc='upper right')
+    plt.show()
+
+  # ---------------------------------------------------------
+    # NORMALIZZAZIONE Fisicamente corretta: integrazione numerica della funzione d'onda al quadrato 
+  
+    # Calcolo della costante di normalizzazione L^2 in 3D (integrale numerico su una griglia 3D)
+   
+    box_size = 10.0
+    n_grid_3d = 60 # 60x60x60 = 216.000 punti per stimare il volume 3D
+    asse_3d = torch.linspace(-box_size, box_size, n_grid_3d)
+    xg, yg, zg = torch.meshgrid(asse_3d, asse_3d, asse_3d, indexing='ij')
+    
+    # Appiattire la griglia per passarla al modello
+    punti_3d = torch.stack([xg.flatten(), yg.flatten(), zg.flatten()], dim=-1)
+    
+    # Elemento di volume dV = dx * dy * dz
+    dx_3d = (2.0 * box_size) / (n_grid_3d - 1)
+    dV = dx_3d ** 3
+
+    with torch.no_grad():
+        psi_3d_valori = model(punti_3d, R_fisso)
+        # Integrazione 3D numerica (Somma di Riemann sul volume)
+        volume_pinn = torch.sum(psi_3d_valori**2) * dV
+        norma_pinn_3D = 1.0 / torch.sqrt(volume_pinn)
+
+        if hasattr(model, 'calcola_LCAO'): 
+            psi_LCAO_3d = model.calcola_LCAO(punti_3d, R_fisso)
+            volume_lcao = torch.sum(psi_LCAO_3d**2) * dV
+            norma_lcao_3D = 1.0 / torch.sqrt(volume_lcao)
+        else:
+            norma_lcao_3D = None
+
+    # Disegno del grafico 1D con la funzione d'onda normalizzata secondo la vera normalizzazione fisica 3D
+    asse_x_1d = torch.linspace(-box_size, box_size, 1000)
+    punti_plot_1d = torch.zeros(1000, 3)
+    punti_plot_1d[:, 0] = asse_x_1d
+
+    with torch.no_grad():
+        psi_1d_valori = model(punti_plot_1d, R_fisso)
+        
+        # Moltiplico per la costante 3D corretta
+        psi_valori_norm = psi_1d_valori * norma_pinn_3D
+
+        if norma_lcao_3D is not None:
+            psi_LCAO_1d_valori = model.calcola_LCAO(punti_plot_1d, R_fisso)
+            psi_LCAO_norm = psi_LCAO_1d_valori * norma_lcao_3D
+
+    plt.figure(figsize=(10, 6))
+
+    plt.plot(asse_x_1d.numpy(), psi_valori_norm.numpy(), color='purple', linewidth=2.5, label='Psi Totale (Norm. L^2 3D)')
+  
+    if norma_lcao_3D is not None:
+        plt.plot(asse_x_1d.numpy(), psi_LCAO_norm.numpy(), color='blue', linestyle='--', linewidth=2, label='Psi LCAO classica (Norm. L^2 3D)')
+        plt.title("Confronto: LCAO vs PINN (Vera Normalizzazione Fisica 3D)")
+    else:
+        plt.title("Funzione d'onda appresa dalla rete (Vera Normalizzazione Fisica 3D)")
+
+    # Aggiungo i due nuclei 
+    plt.scatter([-R_fisso, R_fisso], [0, 0], color='red', s=60, zorder=5, label='Nuclei')
+    plt.axvline(x=-R_fisso, color='red', linestyle=':', alpha=0.5)
+    plt.axvline(x=R_fisso, color='red', linestyle=':', alpha=0.5)
+
+    # Dettagli del grafico
+    plt.xlabel('x [a.u.]')
+    plt.ylabel('Ampiezza Psi Normalizzata')
     plt.grid(True, alpha=0.3)
     plt.legend(loc='upper right')
     plt.show()
