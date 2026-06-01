@@ -214,6 +214,7 @@ if __name__ == '__main__':
     plt.grid(True, alpha=0.3)
     plt.title('Andamento della Loss')
     plt.legend()
+    plt.yscale('log')
     plt.show()
 
     # grafico dell'Energia

@@ -115,4 +115,5 @@ if __name__ == '__main__':
     plt.ylabel('Loss')
     plt.grid(True, alpha=0.3)
     plt.title('Andamento della Loss')
+    plt.yscale('log')
     plt.show()

@@ -95,7 +95,7 @@ if __name__ == '__main__':
         if loss_attuale < miglior_loss:
             miglior_loss = loss_attuale
             migliori_pesi = copy.deepcopy(modello.state_dict())
-            if epoca % 50 == 0:
+            if epoca % 400 == 0:
                 print(f"Epoca {epoca} | Loss PDE: {miglior_loss:.6f} | Energia E: {modello.E.item():.4f}")
 
     print(f"Training completato. La loss minima raggiunta è stata: {miglior_loss:.6f}")
@@ -110,6 +110,7 @@ if __name__ == '__main__':
     plt.ylabel('Loss')
     plt.grid(True, alpha=0.3)
     plt.title('Andamento della Loss')
+    plt.yscale('log')
     plt.show()
 
     # disegno dell'andamento dei valori di energia 
