@@ -1,4 +1,4 @@
-## 🌟 Bachelor's Thesis Project: BSc in Physics, Unimib
+## Bachelor's Thesis Project: BSc in Physics, Unimib
 
 The electronic Schrödinger equation is the heart of quantum chemistry, but its exact solution is impossible for systems with more than one electron and complex even for the simplest molecules. 
 
