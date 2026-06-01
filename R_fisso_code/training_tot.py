@@ -181,7 +181,7 @@ if __name__ == '__main__':
     plt.legend()
     plt.show()
 
-    # Disegno della funzione d'onda 
+    # Disegno della funzione d'onda [Normalizzazione sbagliata]
     asse_x = torch.linspace(-5, 5, 1000)
     punti_plot = torch.zeros(1000, 3)
     punti_plot[:, 0] = asse_x
@@ -227,7 +227,8 @@ if __name__ == '__main__':
     # NORMALIZZAZIONE Fisicamente corretta: integrazione numerica della funzione d'onda al quadrato 
   
     # Calcolo della costante di normalizzazione L^2 in 3D (integrale numerico su una griglia 3D)
-   
+    # Metodo: Somma di Riemann
+
     box_size = 10.0
     n_grid_3d = 60 # 60x60x60 = 216.000 punti per stimare il volume 3D
     asse_3d = torch.linspace(-box_size, box_size, n_grid_3d)
