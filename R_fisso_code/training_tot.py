@@ -127,6 +127,9 @@ if __name__ == '__main__':
     migliori_pesi = None
     valori_energia = []
 
+    valori_loss_PDE = []
+    valori_loss_BC = []
+
     for epoca in range(epoche):
         
         r_batch = (torch.rand(punti_per_epoca, 3) * 20 ) - 10 # distribuz. tra -10 e +10 a.u.
@@ -145,6 +148,11 @@ if __name__ == '__main__':
         ottimizzatore.zero_grad()
 
         # salvataggio dati (loss ed energia)
+        loss_attuale_PDE = loss_PDE.item()
+        valori_loss_PDE.append(loss_attuale_PDE) 
+        loss_attuale_BC = loss_BC.item()
+        valori_loss_BC.append(loss_attuale_BC)
+
         loss_attuale = loss_totale.item()
         valori_loss.append(loss_attuale)
         valori_energia.append(model.E.item())
@@ -162,13 +170,20 @@ if __name__ == '__main__':
     print(f"L'Energia calcolata dalla rete per R=1.0 è: {energia_finale:.6f} a.u.")
 
 
-   # disegno della loss function
-    plt.plot(valori_loss, color='blue', linewidth=2)
+   # disegno delle Loss
+    plt.figure(figsize=(10, 6))
+    
+    plt.plot(valori_loss_PDE, color='red', linewidth=2, label='Loss PDE')
+    plt.plot(valori_loss_BC, color='green', linewidth=2, label='Loss BC')
+    
+    plt.plot(valori_loss, color='blue', linewidth=4, alpha=0.3, label='Total Loss')
+    
     plt.xlabel('Epoca')
-    plt.ylabel('Loss')
+    plt.ylabel('Valore Loss')
     plt.grid(True, alpha=0.3)
-    plt.title('Andamento della Loss')
-    plt.yscale('log')
+    plt.title('Andamento delle componenti della Loss')
+    plt.yscale('log') 
+    plt.legend()
     plt.show()
 
     # disegno dell'andamento dei valori di energia 
