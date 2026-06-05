@@ -114,7 +114,9 @@ if __name__ == '__main__':
         valori_energia.append(torch.mean(energy).item())
 
     tempo_globale = time.time() - start_time_globale
-    print(f"Training totale completato in {tempo_globale:.2f} secondi ({tempo_globale/60:.2f} minuti)")
+    minuti = int(tempo_globale // 60)
+    secondi = tempo_globale % 60
+    print(f"Training totale completato in {minuti} minuti e {secondi:.2f} secondi")
 
    # Fine-Tuning
     print("\nInizio fase di Fine-Tuning...")
@@ -154,7 +156,9 @@ if __name__ == '__main__':
         valori_energia.append(torch.mean(energy).item())
 
     tempo_ft = time.time() - start_time_ft
-    print(f"Fine-Tuning completato in {tempo_ft:.2f} secondi ({tempo_ft/60:.2f} minuti)")
+    minuti_ft = int(tempo_ft // 60)
+    secondi_ft = tempo_ft % 60
+    print(f"Fine-Tuning completato in {minuti_ft} minuti e {secondi_ft:.2f} secondi")
 
     print("\nTraining completato. Salvataggio dei risultati in corso...")     
     
@@ -165,7 +169,7 @@ if __name__ == '__main__':
         'valori_loss_BC': valori_loss_BC,
         'valori_loss': valori_loss,
         'valori_energia': valori_energia,
-        'epoche_pre_ft': epoche  # Salviamo a che punto è iniziato il fine tuning
+        'epoche_pre_ft': epoche  # Salvo a che punto è iniziato il fine tuning
     }
     
     torch.save(checkpoint, 'best_model_results.pth')

@@ -110,11 +110,11 @@ class model(nn.Module):
         gate_value = self.gate(R_batch).squeeze(-1) 
         energy = self.energy_unit(R_batch).squeeze(-1) 
 
-        # CONCATENAZIONE A 4 DIMENSIONI 
-        # Uniamo le coordinate cartesiane X [batch, 3] con la distanza R_batch [batch, 1] -> [batch, 4]
+        # Concatenazione a 4 dimensioni 
+        # Unire le coordinate cartesiane X [batch, 3] con la distanza R_batch [batch, 1] -> [batch, 4]
         input_pos = torch.cat([X, R_batch], dim=-1)
         
-        # Per l'operazione di inversione geometrica di parità, invertiamo lo spazio (-X),
+        # Per l'operazione di inversione geometrica di parità, inverto lo spazio (-X),
         # mentre l'asse/parametro R rimane speculare e invariato
         input_neg = torch.cat([-X, R_batch], dim=-1)
 

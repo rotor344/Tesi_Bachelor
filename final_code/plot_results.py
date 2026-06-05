@@ -55,24 +55,24 @@ def calcola_valore_atteso_H(model, R_val, n_grid=40, box=10.0):
 
     # PINN 
     psi_pinn, _ = model(pts, Rt)
-    lap_pinn = calcola_laplaciano(psi_pinn, pts)
+    laplaciano_pinn = calcola_laplaciano(psi_pinn, pts)
     V = calcola_potenziale(pts, R_val)
     
-    H_psi_pinn = -0.5 * lap_pinn + V * psi_pinn
-    int_num_pinn = (psi_pinn * H_psi_pinn).detach().reshape(n_grid, n_grid, n_grid)
-    int_den_pinn = (psi_pinn**2).detach().reshape(n_grid, n_grid, n_grid)
-
+    H_psi_pinn = -0.5 * laplaciano_pinn + V * psi_pinn
+    int_num_pinn = (psi_pinn * H_psi_pinn).detach().reshape(n_grid, n_grid, n_grid) # numeratore dell'integrale <psi|H|psi>
+    int_den_pinn = (psi_pinn**2).detach().reshape(n_grid, n_grid, n_grid) # denominatore dell'integrale <psi|psi>
+    # Energia attesa <H> = (psi|H|psi) / (psi|psi)
     E_int_pinn = integra3d(coord, coord, coord, int_num_pinn) / integra3d(coord, coord, coord, int_den_pinn)
 
     # LCAO
     psi_lcao = model.calcola_LCAO(pts, Rt)
-    lap_lcao = calcola_laplaciano(psi_lcao, pts)
+    laplaciano_lcao = calcola_laplaciano(psi_lcao, pts)
     
-    H_psi_lcao = -0.5 * lap_lcao + V * psi_lcao
+    H_psi_lcao = -0.5 * laplaciano_lcao + V * psi_lcao
     int_num_lcao = (psi_lcao * H_psi_lcao).detach().reshape(n_grid, n_grid, n_grid)
     int_den_lcao = (psi_lcao**2).detach().reshape(n_grid, n_grid, n_grid)
-    
-    E_int_lcao = integra3d(coord, coord, coord, int_num_lcao) / integra3d(coord, coord, coord, int_den_lcao)
+    # Energia attesa <H> per LCAO = <psi_LCAO|H|psi_LCAO> / <psi_LCAO|psi_LCAO>
+    E_int_lcao = integra3d(coord, coord, coord, int_num_lcao) / integra3d(coord, coord, coord, int_den_lcao) 
 
     return E_int_pinn, E_int_lcao
 
@@ -104,8 +104,8 @@ def estrai_slicing_denso_1D(model, R_val, norm_psi, norm_lcao, n_punti=1000, box
     return asse_x.numpy(), (psi_ * norm_psi).numpy(), (psi_lcao_ * norm_lcao).numpy()
     
 if __name__ == '__main__':
+
     model = model(input_dim=4, n_hidden=2, n_neurons=16)
-    
     checkpoint = torch.load('best_model_results.pth')
     model.load_state_dict(checkpoint['model_state_dict'])
     
@@ -124,7 +124,7 @@ if __name__ == '__main__':
     plt.xlabel('Epoca')
     plt.ylabel('Valore Loss')
     plt.grid(True, alpha=0.3)
-    plt.title('Andamento delle componenti della Loss')
+    plt.title('Loss graph during training')
     plt.yscale('log') 
     plt.legend()
     plt.tight_layout()
@@ -132,37 +132,37 @@ if __name__ == '__main__':
 
     # Calcolo valori di aspettazione <H>
     
-    rE = np.arange(0.5, 4.1, 0.5) # Punti R scelti per l'integrazione (stile Paper)
-    E_int_list = []
+    R_E = np.arange(0.5, 4.1, 0.5) # Punti R scelti per l'integrazione R_E: shape (8,) da 0.5 a 4.0 con step 0.5
+    E_int_pinn_list = []
     E_int_lcao_list = []
 
     model.train() # Serve per l'autograd nel Laplaciano
-    for r_val in rE:
-        e_pinn, e_lcao = calcola_valore_atteso_H(model, r_val, n_grid=40, box=10.0)
-        E_int_list.append(e_pinn)
-        E_int_lcao_list.append(e_lcao)
+    for R_val in R_E:
+        E_pinn, E_lcao = calcola_valore_atteso_H(model, R_val, n_grid=40, box=10.0)
+        E_int_pinn_list.append(E_pinn)
+        E_int_lcao_list.append(E_lcao)
 
-    E_int = np.array(E_int_list)
+    E_int_pinn = np.array(E_int_pinn_list)
     E_int_lcao = np.array(E_int_lcao_list)
     
-    # Aggiungiamo la repulsione nucleare 1 / (2*R)
-    E_tot_int = E_int + 1.0 / (2.0 * rE)
-    E_tot_int_lcao = E_int_lcao + 1.0 / (2.0 * rE)
+    # !Aggiungere la repulsione nucleare 1 / (2*R)
+    E_tot_H_pinn = E_int_pinn + 1.0 / (2.0 * R_E)
+    E_tot_H_lcao = E_int_lcao + 1.0 / (2.0 * R_E)
 
-    # Dati Neurali Continui (E(R) del modello) 
+    # dati neurali Continui (E(R) del modello) 
     R_forza = torch.linspace(0.25, 4.0, 200, requires_grad=True).unsqueeze(1)
     E_el_neural = model.energy_unit(R_forza).squeeze(-1)
     repulsione = 1.0 / (2.0 * R_forza.squeeze(-1))
-    E_tot_neural = E_el_neural + repulsione
+    Neural_E_tot = E_el_neural + repulsione
     
     # Forza Autograd
     Forza_PINN = -torch.autograd.grad(
-        outputs=E_tot_neural, inputs=R_forza, grad_outputs=torch.ones_like(E_tot_neural), create_graph=False
+        outputs=Neural_E_tot, inputs=R_forza, grad_outputs=torch.ones_like(Neural_E_tot), create_graph=False
     )[0].squeeze(-1).numpy()
     
     model.eval()
     R_np = R_forza.detach().squeeze(-1).numpy()
-    E_tot_neural_np = E_tot_neural.detach().numpy()
+    Neural_E_tot_np = Neural_E_tot.detach().numpy()
     
     with torch.no_grad():
         gate_values = model.gate(R_forza).squeeze(-1).numpy()
@@ -176,29 +176,29 @@ if __name__ == '__main__':
         -0.7136, -0.7037, -0.6946, -0.6863, -0.6786, -0.6716, -0.6651, -0.6591, 
         -0.6536, -0.6485, -0.6437, -0.6392, -0.6351, -0.6312, -0.6276
     ])
-    e_exact_tot = E_elec_exact + (1.0 / (2.0 * Rexact))
-    F_ex = -np.gradient(e_exact_tot, Rexact)
+    E_exact_tot = E_elec_exact + (1.0 / (2.0 * Rexact))
+    F_ex = -np.gradient(E_exact_tot, Rexact)
 
     # Forze alle differenze finite sugli integrali
-    F_int = -np.gradient(E_tot_int, rE)
-    F_lcao = -np.gradient(E_tot_int_lcao, rE)
+    F_pinn = -np.gradient(E_tot_H_pinn, R_E)
+    F_lcao = -np.gradient(E_tot_H_lcao, R_E)
 
     # Errori Interpolati
-    e_exact_rE = np.interp(rE, Rexact, e_exact_tot)
-    df_int = E_tot_int - e_exact_rE
-    df_lcao = E_tot_int_lcao - e_exact_rE
-    
+    E_exact_R_E = np.interp(R_E, Rexact, E_exact_tot) # su 8 punti R_E
+    df_int = E_tot_H_pinn - E_exact_R_E
+    df_lcao = E_tot_H_lcao - E_exact_R_E
+
     # Errore continuo per E(R) neurale
     with torch.no_grad():
-        R_ex_tens = torch.tensor(Rexact, dtype=torch.float32).unsqueeze(1)
-        E_net_grid = model.energy_unit(R_ex_tens).squeeze(-1).numpy() + (1.0/(2.0*Rexact))
-    df_net = E_net_grid - e_exact_tot
+        R_ex_tens = torch.tensor(Rexact, dtype=torch.float32).unsqueeze(1) # # su 39 punti R_ex_tens
+        Neural_E_tot = model.energy_unit(R_ex_tens).squeeze(-1).numpy() + (1.0/(2.0*Rexact))
+    df_neural = Neural_E_tot - E_exact_tot
 
 
     # GRAFICO COMPOSITO: Energy, Force, Errori, Gate
 
-    lineW = 3
-    marker_style_exact = dict(color='r', linestyle='none', marker='o', fillstyle='full', linewidth=lineW)
+    lineW = 2
+    marker_style_exact = dict(color='black', linestyle='none', marker='o', fillstyle='full', linewidth=lineW)
     marker_style_int = dict(color='g', linestyle='none', marker='o', fillstyle='none', linewidth=lineW)
     marker_style_net = dict(color='b', linestyle='-', linewidth=lineW)
     marker_style_lcao = dict(color='m', linestyle='none', marker='*', fillstyle='none', linewidth=lineW)
@@ -209,24 +209,24 @@ if __name__ == '__main__':
     ax1 = plt.subplot2grid((3, 2), (0, 0), colspan=1, rowspan=2)
     plt.tick_params('x', labelbottom=False)
 
-    plt.plot(Rexact, e_exact_tot, **marker_style_exact, label='Reference: $E_{t}$')
-    plt.plot(rE, E_tot_int_lcao, **marker_style_lcao, label='LCAO: $\langle E_\ell \\rangle$')
-    plt.plot(rE, E_tot_int, **marker_style_int, label ='Neural: $\langle \hat H \\rangle$')
-    plt.plot(R_np, E_tot_neural_np, **marker_style_net, label='Neural: $E(R)$')
+    plt.plot(Rexact, E_exact_tot, **marker_style_exact, label='Reference: $E_{t}$')
+    plt.plot(R_E, E_tot_H_lcao, **marker_style_lcao, label='LCAO: $\langle E_\ell \\rangle$')
+    plt.plot(R_E, E_tot_H_pinn, **marker_style_int, label ='Neural: $\langle \hat H \\rangle$')
+    plt.plot(R_np, Neural_E_tot_np, **marker_style_net, label='Neural: $E(R)$')
     
     plt.legend(frameon=False)
-    plt.xlim([0.25, 4.0]); plt.ylim([-0.65, 0]); plt.ylabel('Energy (AU)')
+    plt.xlim([0.25, 4.0]); plt.ylim([-0.65, 0]); plt.ylabel('Energy [a.u.]')
     plt.grid(True, alpha=0.3)
 
     # (in basso a sinistra) Errore
     plt.subplot2grid((3, 2), (2, 0), colspan=1, sharex=ax1)
     plt.tick_params('x', labelbottom=True)
     
-    plt.plot(rE, df_int, **marker_style_int)
-    plt.plot(rE, df_lcao, **marker_style_lcao)
-    plt.plot(Rexact, df_net, **marker_style_net)
+    plt.plot(R_E, df_int, **marker_style_int)
+    plt.plot(R_E, df_lcao, **marker_style_lcao)
+    plt.plot(Rexact, df_neural, **marker_style_net)
     
-    plt.ylabel('Error (AU)'); plt.ylim(-0.02, 0.06); plt.yticks([0, 0.025, 0.05])
+    plt.ylabel('Error [a.u.]'); plt.ylim(-0.02, 0.06); plt.yticks([0, 0.025, 0.05])
     plt.axhline(0, c='k', linestyle='--', linewidth=lineW*1.0, alpha=0.9)
     plt.xlabel("$R$"); plt.xticks(np.arange(0.5, 4.5, 0.5))
     plt.grid(True, alpha=0.3)
@@ -236,8 +236,8 @@ if __name__ == '__main__':
     plt.tick_params('x', labelbottom=False)
 
     plt.plot(Rexact[1:-1], F_ex[1:-1], **marker_style_exact)
-    plt.plot(rE[1:-1], F_lcao[1:-1], **marker_style_lcao)
-    plt.plot(rE[1:-1], F_int[1:-1], **marker_style_int)
+    plt.plot(R_E[1:-1], F_lcao[1:-1], **marker_style_lcao)
+    plt.plot(R_E[1:-1], F_pinn[1:-1], **marker_style_int)
     plt.plot(R_np, Forza_PINN, '--b', linewidth=lineW)
 
     plt.ylabel('Force'); plt.ylim([-0.1, 0.5]); plt.xlim([0.25, 4.0])
