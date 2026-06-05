@@ -3,9 +3,8 @@
 Questa cartella contiene l'implementazione e gli script per effettuare un addestramento semplificato della PINN. 
 
 ## Dettagli del Training Ridotto
-L'obiettivo di questo codice è testare il funzionamento e l'accuratezza della rete prima di passare a un campionamento più esteso. Nello specifico:
 * Le coordinate spaziali dell'elettrone $r$ vengono campionate in un intervallo ridotto compreso tra -10 e 10.
-* La distanza internucleare $R$ non è trattata come una variabile di input casuale, ma è mantenuta come un parametro fisso per tutta la durata dell'addestramento[cite: 1, 6].
+* La distanza internucleare $R$ non è trattata come una variabile di input casuale, ma è mantenuta come un parametro fisso per tutta la durata dell'addestramento.
 * L'energia totale del sistema è implementata come un parametro scalare della rete neurale, che viene ottimizzato durante il processo di training.
 
 ## Modelli Implementati a Step
