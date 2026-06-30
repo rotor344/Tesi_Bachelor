@@ -66,13 +66,10 @@ class modello_sym(nn.Module):
         super().__init__()
         self.basis_unit = Basis_Unit(input_dim, n_hidden, n_neurons)
         self.gate = Gate(input_dim=1, n_hidden=0, n_neurons=10)  # the gate has its own architecture    
+        self.E = self.basis_unit.E  # Sharing the same energy parameter between the Basis Unit and the intermediate model
+        self.P = 1.0 # Parity operator (+1 : symmetric ground state, -1 : antisymmetric first excited state)
 
-        # Sharing the same energy parameter between the Basis Unit and the intermediate model
-        self.E = self.basis_unit.E  
-        # Parity operator (+1 : symmetric ground state, -1 : antisymmetric first excited state)
-        self.P = 1.0
-
-    # pysical bias methods
+    # pysical bias method
     def calcola_LCAO(self, r, R):
         dispositivo = r.device 
         nucleo_sx = torch.tensor([-R, 0.0, 0.0], device=dispositivo)
@@ -85,7 +82,6 @@ class modello_sym(nn.Module):
     def forward(self, X, R):
 
         psi_LCAO = self.calcola_LCAO(X, R)
-
         R_tensor = torch.tensor([R], dtype=torch.float32, device=X.device)
         gate_value = self.gate(R_tensor) # The gate value is a scalar that modulates the neural correction
 
