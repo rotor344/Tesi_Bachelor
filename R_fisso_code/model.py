@@ -60,16 +60,16 @@ class Gate(nn.Module):
     def forward(self, X):
         return self.model(X).squeeze(-1)
 
-# Modello intermedio con Basis Unit e Gate, reso simmetrico
+# Intermediate model with Basis Unit and Gate, made symmetric
 class modello_sym(nn.Module):
     def __init__(self, input_dim, n_hidden, n_neurons):
         super().__init__()
         self.basis_unit = Basis_Unit(input_dim, n_hidden, n_neurons)
-        self.gate = Gate(input_dim=1, n_hidden=0, n_neurons=10)  # Il gate può avere una struttura diversa
+        self.gate = Gate(input_dim=1, n_hidden=0, n_neurons=10)  # the gate has its own architecture    
 
-        # Condividiamo lo stesso parametro di energia tra la Basis Unit e il modello intermedio 
+        # Sharing the same energy parameter between the Basis Unit and the intermediate model
         self.E = self.basis_unit.E  
-        # Operatore parità (+1 : ground state simmetrico)
+        # Parity operator (+1 : symmetric ground state, -1 : antisymmetric first excited state)
         self.P = 1.0
 
     # fisica
@@ -89,13 +89,13 @@ class modello_sym(nn.Module):
         psi_LCAO = self.calcola_LCAO(X, R)
 
         R_tensor = torch.tensor([R], dtype=torch.float32, device=X.device)
-        gate_value = self.gate(R_tensor) # Il gate dipende solo da R, non da X. Restituisce un singolo numero costante
+        gate_value = self.gate(R_tensor) # The gate value is a scalar that modulates the neural correction
 
-        # correzione neurale in X
+        # neural correction in +X
         correzione_pos = self.basis_unit(X)
         N_pos = gate_value * correzione_pos
 
-        # correzione neurale in -X (simmetria)
+        # neural correction in -X (symmetric)
         correzione_neg = self.basis_unit(-X)
         N_neg = gate_value * correzione_neg
 
