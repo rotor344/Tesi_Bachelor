@@ -10,10 +10,10 @@ class Basis_Unit(nn.Module):
         super().__init__()
         self.n_hidden = n_hidden
         self.n_neurons = n_neurons
-        # L'Energia (per ora) è un parametro scalare addestrabile (lo inizializzo a -1.0)
+        # In this case the energy is a trainable scalar parameter (initialized to -1.0)
         self.E = nn.Parameter(torch.tensor([-1.0]))
         
-        # Creazione della rete neurale (Basis Unit)
+        # Creation of the neural network (Basis Unit)
         layers = []
 
         # input
@@ -27,7 +27,7 @@ class Basis_Unit(nn.Module):
         
         # output
         layers.append(nn.Linear(n_neurons, 1)) 
-        #layers.append(nn.Sigmoid())  senza correzione per la correzione
+        # without sigmoid for correction
 
         self.model = nn.Sequential(*layers)
     
@@ -101,7 +101,7 @@ class modello_sym(nn.Module):
 
         N_simmetrica = 0.5 * (N_pos + self.P * N_neg)
         
-        return psi_LCAO + gate_value * N_simmetrica 
+        return psi_LCAO +  N_simmetrica 
     
  
     
