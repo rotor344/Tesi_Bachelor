@@ -215,26 +215,23 @@ class modello_v2(nn.Module):
         return phi_sx + phi_dx
     
     def forward(self, X, R_batch):
-        # Calcolo Base Fisica (LCAO)
+   
         psi_LCAO = self.calcola_LCAO(X, R_batch)
-
         gate_value = self.gate(R_batch).squeeze(-1) 
         energy = self.energy_unit(R_batch).squeeze(-1) 
 
-        # Concatenazione di X con R per la Basis Unit (4dim) 
-        # Uniamo le coordinate cartesiane X [batch, 3] con la distanza R_batch [batch, 1] -> [batch, 4]
+        # X concatenated with R_batch to form a 4D input for the Basis Unit 
         input_pos = torch.cat([X, R_batch], dim=-1)
         
-        # Per l'operazione di inversione geometrica di parità, inverto lo spazio (-X),
-        # mentre l'asse/parametro R rimane speculare e invariato
+        # For the geometric parity inversion, the spatial coordinates are inverted (-X), 
+        # while the parameter R remains unchanged.
         input_neg = torch.cat([-X, R_batch], dim=-1)
 
-        # Correzione spaziale operante su spazio quadridimensionale (x, y, z, R)
         correzione_pos = self.basis_unit(input_pos)
         correzione_neg = self.basis_unit(input_neg)
         N_simmetrica = 0.5 * (correzione_pos + self.P * correzione_neg)
         
-        # Ansatz totale
+        # Total ansatz
         correzione_totale = gate_value * N_simmetrica 
         psi_tot = psi_LCAO + correzione_totale
         
