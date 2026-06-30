@@ -72,18 +72,16 @@ class modello_sym(nn.Module):
         # Parity operator (+1 : symmetric ground state, -1 : antisymmetric first excited state)
         self.P = 1.0
 
-    # fisica
+    # pysical bias methods
     def calcola_LCAO(self, r, R):
         dispositivo = r.device 
         nucleo_sx = torch.tensor([-R, 0.0, 0.0], device=dispositivo)
         nucleo_dx = torch.tensor([R, 0.0, 0.0], device=dispositivo)
-
         phi_sx = torch.exp(-torch.norm(r - nucleo_sx, dim=-1))
         phi_dx = torch.exp(-torch.norm(r - nucleo_dx, dim=-1))
 
         return phi_sx + phi_dx
-    
-    
+
     def forward(self, X, R):
 
         psi_LCAO = self.calcola_LCAO(X, R)
