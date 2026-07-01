@@ -103,12 +103,7 @@ def calcola_Loss_BC(psi: torch.Tensor, r_batch: torch.Tensor, R_batch: float) ->
 # TRAINING
 if __name__ == '__main__':
 
-    print("Training del modello con architecture come paper")
-
-    #model = modello_v0(input_dim=3, n_hidden=2, n_neurons=16)
-    #model = modello_v1(input_dim=2, n_hidden=2, n_neurons=16)
     model = modello_v2(input_dim=4, n_hidden=2, n_neurons=16)
-
     ottimizzatore = optim.Adam(model.parameters(), lr=8*10**(-3))
 
     epoche = 4000
@@ -117,19 +112,16 @@ if __name__ == '__main__':
     miglior_loss = float('inf')  
     migliori_pesi = None
     valori_energia = []
-
     valori_loss_PDE = []
     valori_loss_BC = []
 
-    print("\n--- Inizio Training Globale ---")
-    start_time_globale = time.time()  # <- Inizio contatore Training Globale
+    print("\n Starting Training Globale ")
+    start_time_globale = time.time()  # <- start global training timer
 
     for epoca in range(epoche):
-        
-        r_batch = (torch.rand(punti_per_epoca, 3) * 20 ) - 10 # distribuz. tra -10 e +10 a.u.
-        #r_batch = (torch.rand(punti_per_epoca, 3) * 36 ) - 18 
-        r_batch.requires_grad_(True) # per calcolare le derivate
-        R_batch = (3.0 - 0.2) * torch.rand(punti_per_epoca, 1) + 0.2
+        r_batch = (torch.rand(punti_per_epoca, 3) * 20 ) - 10 # distribut. btw -10 and +10 a.u.
+        r_batch.requires_grad_(True) # to compute gradients 
+        R_batch = (3.0 - 0.2) * torch.rand(punti_per_epoca, 1) + 0.2 # distribut. btw 0.2 and 3.0 a.u.
 
         # forward pass
         psi, energy = model(r_batch, R_batch)
@@ -142,50 +134,45 @@ if __name__ == '__main__':
         loss_totale.backward() 
         ottimizzatore.step()
         ottimizzatore.zero_grad()
-
+        # best model saving
         if loss_totale.item() < miglior_loss:
             miglior_loss = loss_totale.item()
             migliori_pesi = copy.deepcopy(model.state_dict())
 
-        # salvataggio dati (loss ed energia)
+        #  loss and energy history saving
         valori_loss_PDE.append(loss_PDE.item()) 
         valori_loss_BC.append(loss_BC.item())
         valori_loss.append(loss_totale.item())
         valori_energia.append(torch.mean(energy).item())
 
-    # <-- Fine contatore Training Globale
-    tempo_globale = time.time() - start_time_globale
-    print(f"Training Globale completato in {tempo_globale:.2f} secondi ({tempo_globale/60:.2f} minuti)")
+    tempo_globale = time.time() - start_time_globale # <- end of global training timer
+    print(f"Global training completed in {tempo_globale:.2f} seconds ({tempo_globale/60:.2f} minutes)")
 
-   # Fine-Tuning
-    print("\nInizio fase di Fine-Tuning ")
-    start_time_ft = time.time()  # <-- Inizio contatore Fine-Tuning
+   # Fine-Tuning Phase
+    print("\n Starting Fine-Tuning Phase (Energy Unit only) ")
+    start_time_ft = time.time()  # <-- start fine-tuning timer
 
-    # Carico i pesi migliori trovati
+    # load of the best model weights from global training
     model.load_state_dict(copy.deepcopy(migliori_pesi))
         
-    # CONGELO Basis Unit e Gate (Nessun aggiornamento pesi)
+    # FREEZE Basis Unit and Gate (No weights update for these parts)
     for param in model.basis_unit.parameters():
         param.requires_grad = False
     for param in model.gate.parameters():
         param.requires_grad = False
     
-    # ottimizzatore esclusivo per la Energy Unit
-    # Learning Rate molto più basso (es. 1e-3 o 5e-4) per la "rifinitura"
+    # exclusive optimizer for the Energy Unit parameters
+    # Lower Learning Rate for refinement
     ottimizzatore_ft = optim.Adam(model.energy_unit.parameters(), lr=1e-3)
-    
     
     epoche_ft = 2000
     for epoca_ft in range(epoche_ft):
-        # campionamento 
         r_batch = (torch.rand(punti_per_epoca, 3) * 20 ) - 10 
-        #r_batch = (torch.rand(punti_per_epoca, 3) * 36 ) - 18
         r_batch.requires_grad_(True)
         R_batch_ft = (3.0 - 0.2) * torch.rand(punti_per_epoca, 1) + 0.2
 
         # Forward pass 
         psi, energy = model(r_batch, R_batch_ft)
-        
         loss_PDE = calcola_Loss_PDE(psi, r_batch, energy, R_batch_ft)
         loss_BC = calcola_Loss_BC(psi, r_batch, R_batch_ft)
         loss_totale = loss_PDE + loss_BC  
@@ -194,23 +181,22 @@ if __name__ == '__main__':
         loss_totale.backward() 
         ottimizzatore_ft.step()
         ottimizzatore_ft.zero_grad()
-        
+        # best model saving
         if loss_totale.item() < miglior_loss:
             miglior_loss = loss_totale.item()
             migliori_pesi = copy.deepcopy(model.state_dict())
 
-        # salvataggio dati (loss ed energia)
+        # loss and energy history saving
         valori_loss_PDE.append(loss_PDE.item()) 
         valori_loss_BC.append(loss_BC.item())
         valori_loss.append(loss_totale.item())
         valori_energia.append(torch.mean(energy).item())
 
-    # <-- Fine contatore Fine-Tuning
-    tempo_ft = time.time() - start_time_ft
-    print(f"Fine-Tuning completato in {tempo_ft:.2f} secondi ({tempo_ft/60:.2f} minuti)")
+    tempo_ft = time.time() - start_time_ft  # <- end of fine-tuning timer
+    print(f"Fine-Tuning completed in {tempo_ft:.2f} seconds ({tempo_ft/60:.2f} minutes)")
 
-   # Training COMPLETATO
-    print("\nTraining completato ")     
+   # Training COMPLETED
+    print("\nTraining completed ")     
    # Carico i pesi finali migliori
     model.load_state_dict(copy.deepcopy(migliori_pesi))
 
@@ -226,10 +212,10 @@ if __name__ == '__main__':
     
     plt.plot(valori_loss, color='blue', linewidth=4, alpha=0.3, label='Total Loss')
     
-    plt.xlabel('Epoca')
-    plt.ylabel('Valore Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss value')
     plt.grid(True, alpha=0.3)
-    plt.title('Andamento delle componenti della Loss')
+    plt.title('Loss during training')
     plt.yscale('log') 
     plt.legend()
     plt.show()
@@ -256,7 +242,7 @@ if __name__ == '__main__':
     E_tot = E_el + repulsione
 
     plt.figure(figsize=(8, 5))
-    plt.plot(distanza_internucleare, E_tot, color='green', linewidth=2.5, label='Neural E(R)+ Repulsione')
+    plt.plot(distanza_internucleare, E_tot, color='blue', linewidth=2.5, label='Neural E(R)+ Repulsion')
     
     # valori di riferimento esatti ( H. Wind, 1965)
     # R da 0.2 a 4.0 con passo di 0.1
@@ -294,8 +280,8 @@ if __name__ == '__main__':
     plt.plot(distanza_internucleare, E_tot_LCAO, color='lightgreen', marker='x', linestyle='none', markersize=6, label='LCAO')
 
     plt.xlabel('R [a.u.]')
-    plt.ylabel('Energia [a.u.]')
-    plt.title('Curva di Dissociazione dell\' H2+')
+    plt.ylabel('Energy [a.u.]')
+    plt.title(r"$\mathrm{H}_2^+$ dissociation curve")
     plt.xlim(0, 4)
     plt.grid(True, alpha=0.3)
     plt.legend()
@@ -385,8 +371,8 @@ if __name__ == '__main__':
         ax.axvline(x=-R_val, color='red', linestyle=':', alpha=0.5)
         ax.axvline(x=+R_val, color='red', linestyle=':', alpha=0.5)
         
-        ax.set_title(f"Funzione d'onda lungo l'asse internucleare (R = {R_val} a.u.)")
-        ax.set_ylabel('Ampiezza normalizzata')
+        ax.set_title(f"wavefuction on internuclear axis (R = {R_val} a.u.)")
+        ax.set_ylabel('Amplitude')
         ax.grid(True, alpha=0.3)
         ax.legend()
 
