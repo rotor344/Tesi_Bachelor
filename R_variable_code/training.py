@@ -126,7 +126,6 @@ if __name__ == '__main__':
 
         # forward pass
         psi, energy = model(r_batch, R_batch)
-
         loss_PDE = calcola_Loss_PDE(psi, r_batch, energy, R_batch)
         loss_BC = calcola_Loss_BC(psi, r_batch, R_batch)
         loss_totale = loss_PDE + loss_BC  
@@ -139,8 +138,7 @@ if __name__ == '__main__':
         if loss_totale.item() < miglior_loss:
             miglior_loss = loss_totale.item()
             migliori_pesi = copy.deepcopy(model.state_dict())
-
-        #  loss and energy history saving
+        # loss and energy history saving
         valori_loss_PDE.append(loss_PDE.item()) 
         valori_loss_BC.append(loss_BC.item())
         valori_loss.append(loss_totale.item())
@@ -186,7 +184,6 @@ if __name__ == '__main__':
         if loss_totale.item() < miglior_loss:
             miglior_loss = loss_totale.item()
             migliori_pesi = copy.deepcopy(model.state_dict())
-
         # loss and energy history saving
         valori_loss_PDE.append(loss_PDE.item()) 
         valori_loss_BC.append(loss_BC.item())
