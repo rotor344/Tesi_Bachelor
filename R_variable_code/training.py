@@ -158,7 +158,7 @@ if __name__ == '__main__':
     for param in model.gate.parameters():
         param.requires_grad = False
     
-    ottimizzatore_ft = optim.Adam(model.energy_unit.parameters(), lr=1e-3)  # exclusive optimizer for the E.U. parameters
+    ottimizzatore_ft = optim.Adam(model.energy_unit.parameters(), lr=1e-4)  # exclusive optimizer for the E.U. parameters
     epoche_ft = 2000
     for epoca_ft in range(epoche_ft):
         r_batch = (torch.rand(punti_per_epoca, 3) * 20 ) - 10 
@@ -184,7 +184,7 @@ if __name__ == '__main__':
         valori_loss_BC.append(loss_BC.item())
         valori_loss.append(loss_totale.item())
         valori_energia.append(torch.mean(energy).item())
-        
+
     tempo_ft = time.time() - start_time_ft  # <- end of fine-tuning timer
     print(f"Fine-Tuning completed in {tempo_ft:.2f} seconds ({tempo_ft/60:.2f} minutes)")
 
