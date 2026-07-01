@@ -153,17 +153,13 @@ if __name__ == '__main__':
 
     # load of the best model weights from global training
     model.load_state_dict(copy.deepcopy(migliori_pesi))
-        
     # FREEZE Basis Unit and Gate (No weights update for these parts)
     for param in model.basis_unit.parameters():
         param.requires_grad = False
     for param in model.gate.parameters():
         param.requires_grad = False
     
-    # exclusive optimizer for the Energy Unit parameters
-    # Lower Learning Rate for refinement
-    ottimizzatore_ft = optim.Adam(model.energy_unit.parameters(), lr=1e-3)
-    
+    ottimizzatore_ft = optim.Adam(model.energy_unit.parameters(), lr=1e-3)  # exclusive optimizer for the Energy Unit parameters
     epoche_ft = 2000
     for epoca_ft in range(epoche_ft):
         r_batch = (torch.rand(punti_per_epoca, 3) * 20 ) - 10 
