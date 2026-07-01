@@ -103,11 +103,6 @@ def calcola_Loss_BC(psi: torch.Tensor, r_batch: torch.Tensor, R_batch: float) ->
 # TRAINING
 if __name__ == '__main__':
 
-    model = modello_v2(input_dim=4, n_hidden=2, n_neurons=16)
-    ottimizzatore = optim.Adam(model.parameters(), lr=8*10**(-3))
-
-    epoche = 4000
-    punti_per_epoca = 15000
     valori_loss = []          
     miglior_loss = float('inf')  
     migliori_pesi = None
@@ -115,7 +110,13 @@ if __name__ == '__main__':
     valori_loss_PDE = []
     valori_loss_BC = []
 
-    print("\n Starting Training Globale ")
+    model = modello_v2(input_dim=4, n_hidden=2, n_neurons=16)
+    ottimizzatore = optim.Adam(model.parameters(), lr=8*10**(-3))
+    epoche = 4000
+    punti_per_epoca = 15000
+
+    # GLOBAL TRAINING phase
+    print("\n Starting Training Globale ") 
     start_time_globale = time.time()  # <- start global training timer
 
     for epoca in range(epoche):
@@ -148,7 +149,7 @@ if __name__ == '__main__':
     tempo_globale = time.time() - start_time_globale # <- end of global training timer
     print(f"Global training completed in {tempo_globale:.2f} seconds ({tempo_globale/60:.2f} minutes)")
 
-   # Fine-Tuning Phase
+   # FINE-TUNING phase
     print("\n Starting Fine-Tuning Phase (Energy Unit only) ")
     start_time_ft = time.time()  # <-- start fine-tuning timer
 
